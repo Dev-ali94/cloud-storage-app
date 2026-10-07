@@ -3,14 +3,31 @@ import { useNavigate,Link } from 'react-router-dom'
 import { CloudUploadIcon,UserIcon,MailIcon,LockIcon } from "lucide-react"
 import {Input} from "../components/ui/Input"
 import {Button} from "../components/ui/Button"
+import { useApp } from '../context/AppContext'
+import toast from 'react-hot-toast'
 
 const Login = ({mode="login"}) => {
+  const {login,register} = useApp()
   const isRegister = mode === "register"
   const navigate = useNavigate()
   const [form,setForm] = useState({name:"",email:"",password:""})
   const [loading,setLoading] = useState(false)
   const updateField = (key,value)=> setForm((prev)=>({...prev,[key]:value}))
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
+  setLoading(true);
+
+  const ok = isRegister
+    ? await register(form.name, form.email, form.password)
+    : await login(form.email, form.password);
+
+  if (ok) {
+    navigate("/");
+  }
+
+  setLoading(false);
+};
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-zinc-100">
@@ -39,7 +56,7 @@ const Login = ({mode="login"}) => {
           )}
           <Input type="email" label="Email" icon={MailIcon} placeholder="Enter your email" value={form.email} onChange={(e) => updateField("email", e.target.value)} required/>
           <Input label="Password" icon={LockIcon} type="password" placeholder="*******" value={form.password} onChange={(e) => updateField("password", e.target.value)} required/>
-          <Button type="submit" variant="primary" className="w-full py-3" loading={loading}>
+          <Button onClick={handleSubmit} type="submit" variant="primary" className="w-full py-3" isLoading={loading}>
             <span className='font-medium text-base'>
             {isRegister ? "Create Account" : "Sign In"}
             </span>
