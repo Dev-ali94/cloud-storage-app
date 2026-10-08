@@ -8,6 +8,7 @@ import ShareWithMe from "./pages/ShareWithMe"
 import Trash from "./pages/Trash"
 import DashboardLayout from './components/layout/DashboardLayout'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import Dashboard from "./pages/Dashboard"
 
 const App = () => {
   return (
@@ -18,7 +19,8 @@ const App = () => {
         <Route path="/register" element={<Login mode="register" />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
-            <Route path="/" element={<Drive />} />
+            <Route path='/' element={<Dashboard/>}/>
+            <Route path="/drive" element={<Drive />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate />} />

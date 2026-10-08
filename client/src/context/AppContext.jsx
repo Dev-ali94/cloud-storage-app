@@ -36,19 +36,19 @@ export const AppProvider = ({ children }) => {
       return false;
     }
   };
-  const refreshUser =  useCallback(async()=>{
+  const refreshUser = useCallback(async () => {
     try {
-      const {data} = await api.get("/api/auth/me")
+      const { data } = await api.get("/api/auth/me")
       setUser(data.user)
-      return data.user    
+      return data.user
     } catch (error) {
       setUser(null)
-      return null      
+      return null
     }
-  },[])
-  useEffect(()=>{
-refreshUser().finally(()=>setIsLoading(false))
-  },[refreshUser])
+  }, [])
+  useEffect(() => {
+    refreshUser().finally(() => setIsLoading(false))
+  }, [refreshUser])
   const login = async (email, password) => {
     return authAction(() => api.post("/api/auth/login", { email, password }), "Welcome Back", "Login Failed")
   }
@@ -64,7 +64,67 @@ refreshUser().finally(()=>setIsLoading(false))
       toast.error("Logout Error")
     }
   }
-  const value = { user, setUser, login, logout, register,isAuthenticated:!!user,isLoading }
+ const fetchDriveContent = useCallback(
+  async (
+    folderId = currentFolderId,
+    search = searchQuery,
+    sort = sortBy
+  ) => {
+    if (!user) return;
+
+    setIsDriveLoading(true);
+
+    try {
+      const parentParams = folderId || "null";
+
+      const [folderRes, fileRes, detailRes] = await Promise.all([
+        api.get("/api/folders", {
+          params: {
+            parent_id: parentParams,
+          },
+        }),
+
+        api.get("/api/files", {
+          params: {
+            folder_id: parentParams,
+            search,
+            sort,
+          },
+        }),
+
+        folderId
+          ? api.get(`/api/folders/${folderId}`)
+          : Promise.resolve(null),
+      ]);
+
+      
+
+      setFolder(folderRes.data.folders);
+      setFile(fileRes.data.files);
+
+      setBreadCrumb(
+        detailRes?.data?.breadcrumb || ROOT_BREADCRUMB
+      );
+      console.log(breadcrumb);
+      
+    } catch (error) {
+      console.error("Drive loading error:", error);
+      toast.error("Error loading Drive......");
+    } finally {
+      setIsDriveLoading(false);
+    }
+  },
+  [user, searchQuery, currentFolderId, sortBy]
+);
+  useEffect(() => {
+  fetchDriveContent();
+}, [fetchDriveContent]);
+  const value = { 
+    user, setUser, login, logout, register, isAuthenticated: !!user, isLoading,
+    setIsUploading,isUploading,setUploadProgress,uploadProgress,refreshUser,setCurrentFolderId,currentFolderId,
+    breadcrumb,folder,setFolder,file,setFile,isDriveLoading,fetchDriveContent,sortBy,setSortBy,searchQuery,setSearchQuery
+  
+  }
   return <AppContext.Provider value={value}>
     {children}
   </AppContext.Provider>
