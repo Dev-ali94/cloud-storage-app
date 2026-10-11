@@ -3,14 +3,27 @@
 
 @import "tailwindcss";
 
-
+:root{
+  --bg-primary:#18181b;
+  --bg-secondary:#27272a;
+  --border-primary:#27272a;
+  --border-secondary:#3f3f46;
+  --title-primary:#F4F4F5;
+  --title-secondary:#d4d4d8;
+  --desc-color:#71717a;
+  --text-primary:#9C27B0;
+  --text-secondary:#9333ea;
+  --bg-btn-primary:#9333ea;
+  --bg-btn-secondary:#9C27B0;
+  --text-icon:#b794f4;
+}
 /* ========================================
    BASE STYLES
 ======================================== */
 
 @layer base {
   body {
-    background-color: #2A2A2A;
+    background-color:#0a0a0a;
     color: #ffffff;
     font-family: 'Urbanist', sans-serif;
   }

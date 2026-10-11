@@ -21,6 +21,7 @@ const App = () => {
           <Route element={<DashboardLayout />}>
             <Route path='/' element={<Dashboard/>}/>
             <Route path="/drive" element={<Drive />} />
+            <Route path="/drive/:folderId" element={<Drive />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate />} />

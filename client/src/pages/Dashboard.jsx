@@ -1,28 +1,31 @@
 
 import React, { useRef, useState } from "react";
 import { Dropdown, DropdownItem } from "../components/ui/Dropdown";
-import {HardDriveUploadIcon,PlusIcon,FolderPlusIcon} from "lucide-react";
+import { HardDriveUploadIcon, PlusIcon, FolderPlusIcon } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { ProgressBar } from "../components/ui/ProgressBar";
+import { useDrive } from "../hooks/useDrive"
 
 
 const Dashboard = () => {
   const fileRef = useRef();
-  const { user, currentFolderId,folder,file } = useApp()
-  const isUploading = false;
+  const { user, currentFolderId, folder, file } = useApp()
+  const { isUploading, uploadFiles } = useDrive()
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
-  const formatBytes = (bytes) => { 
-  if (!bytes || bytes <= 0) return "0 B";
-  console.log(folder);
-  // console.log(file)
-  
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes <= 0) return "0 B";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
 
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-
-  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
-};
-   const storage_used =Math.floor(Number(user?.storage_used ?? 0)) 
+    return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
+  };
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      uploadFiles(e.target.files, currentFolderId)
+      e.target.value = ""
+    }
+  }
+  const storage_used = Math.floor(Number(user?.storage_used ?? 0))
   const storage_limit = Number(user?.storage_limit ?? 0)
   const used_percentage = Math.min(100, Math.round((storage_used / storage_limit) * 100))
 
@@ -47,6 +50,7 @@ const Dashboard = () => {
               type="file"
               multiple
               className="hidden"
+              onChange={handleFileSelect}
             />
 
             <Dropdown
@@ -85,74 +89,74 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- 
-        {/* Box 1 */} 
-        <div className="bg-zinc-900 rounded-2xl p-5 min-h-[180px]"> 
-          <h3 className="text-white font-semibold text-lg"> 
-            Total Files 
-          </h3> 
- 
-          <p className="text-zinc-400 text-sm mt-2"> 
-            Your uploaded files 
-          </p> 
- 
-          <div className="text-3xl font-bold text-purple-500 mt-6"> 
-           {file.length} 
-          </div> 
-        </div> 
- 
-        {/* Box 2 */} 
-        <div className="bg-zinc-900 rounded-2xl p-5 min-h-[180px]"> 
-          <h3 className="text-white font-semibold text-lg"> 
-            Folders 
-          </h3> 
- 
-          <p className="text-zinc-400 text-sm mt-2"> 
-            Your folders 
-          </p> 
- 
-          <div className="text-3xl font-bold text-purple-500 mt-6"> 
-            {folder.length} 
-          </div> 
-        </div> 
- 
+
+        {/* Box 1 */}
+        <div className="bg-zinc-900 rounded-2xl p-5 min-h-[180px]">
+          <h3 className="text-white font-semibold text-lg">
+            Total Files
+          </h3>
+
+          <p className="text-zinc-400 text-sm mt-2">
+            Your uploaded files
+          </p>
+
+          <div className="text-3xl font-bold text-purple-500 mt-6">
+            {file.length}
+          </div>
+        </div>
+
+        {/* Box 2 */}
+        <div className="bg-zinc-900 rounded-2xl p-5 min-h-[180px]">
+          <h3 className="text-white font-semibold text-lg">
+            Folders
+          </h3>
+
+          <p className="text-zinc-400 text-sm mt-2">
+            Your folders
+          </p>
+
+          <div className="text-3xl font-bold text-purple-500 mt-6">
+            {folder.length}
+          </div>
+        </div>
+
         {/* Box 3 - Storage */}
-<div className="bg-zinc-900 rounded-2xl p-5 min-h-[180px] flex flex-col">
-  <h3 className="text-white font-semibold text-lg">
-    Storage
-  </h3>
+        <div className="bg-zinc-900 rounded-2xl p-5 min-h-[180px] flex flex-col">
+          <h3 className="text-white font-semibold text-lg">
+            Storage
+          </h3>
 
-  <div className="flex items-center justify-between mt-3">
-    <p className="text-zinc-400 text-sm">
-      Storage used
-    </p>
+          <div className="flex items-center justify-between mt-3">
+            <p className="text-zinc-400 text-sm">
+              Storage used
+            </p>
 
-    <p className="text-purple-400 text-sm font-medium">
-      {used_percentage}%
-    </p>
-  </div>
+            <p className="text-purple-400 text-sm font-medium">
+              {used_percentage}%
+            </p>
+          </div>
 
-  {/* Progress Bar */}
-  <div className="mt-3">
-    <ProgressBar progress={used_percentage} color={used_percentage > 90 ?"bg-red-500" : used_percentage >75 ? "bg-ember-500" : "bg-purple-500"} />
-  </div>
+          {/* Progress Bar */}
+          <div className="mt-3">
+            <ProgressBar progress={used_percentage} color={used_percentage > 90 ? "bg-red-500" : used_percentage > 75 ? "bg-ember-500" : "bg-purple-500"} />
+          </div>
 
-  {/* Storage Value */}
-  <div className="mt-5 flex items-end justify-between">
-    <div>
-      <p className="text-3xl font-bold text-purple-500">
-       {formatBytes(storage_used)}
-      </p>
-      <p className="text-xs text-zinc-500 mt-1">
-      {formatBytes(storage_limit)}
-      </p>
-    </div>
+          {/* Storage Value */}
+          <div className="mt-5 flex items-end justify-between">
+            <div>
+              <p className="text-3xl font-bold text-purple-500">
+                {formatBytes(storage_used)}
+              </p>
+              <p className="text-xs text-zinc-500 mt-1">
+                {formatBytes(storage_limit)}
+              </p>
+            </div>
 
-    <span className="text-xs text-zinc-500">
-      {used_percentage}% used
-    </span>
-  </div>
-</div>
+            <span className="text-xs text-zinc-500">
+              {used_percentage}% used
+            </span>
+          </div>
+        </div>
       </div>
 
       <div className="bg-zinc-900 rounded-2xl p-5 min-h-[250px]">

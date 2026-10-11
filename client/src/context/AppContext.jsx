@@ -105,7 +105,6 @@ export const AppProvider = ({ children }) => {
       setBreadCrumb(
         detailRes?.data?.breadcrumb || ROOT_BREADCRUMB
       );
-      console.log(breadcrumb);
       
     } catch (error) {
       console.error("Drive loading error:", error);
