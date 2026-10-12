@@ -46,7 +46,7 @@ const FileGrid = ({onFolderClick,onPreviewFile,onShareItem,onMoveItem,onRenameIt
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
                 {file.map((file)=>(
                      <FileCard key={file.id} file={file}
-                     onPreviewFile={onPreviewFile}
+                     onPreview={onPreviewFile}
                      onShare={(item)=> onShareItem({...item,item_tpe:"file"})}
                      onRename={(item)=> onRenameItem({...item,item_tpe:"file"})}
                      onMove={(item)=> onMoveItem({...item,item_tpe:"file"})}

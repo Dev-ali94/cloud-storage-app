@@ -3,7 +3,7 @@ import { ItemDropdown } from "../ui/ItemDropdown"
 import { format } from "date-fns"
 
 
-const FileCard = ({ file, onClick, onShare, onRename, onMove, onDelete }) => {
+const FileCard = ({ file, onClick, onShare,onPreview, onRename, onMove, onDelete }) => {
   return (
     <div
       onClick={() => onClick(file)}
@@ -40,6 +40,7 @@ const FileCard = ({ file, onClick, onShare, onRename, onMove, onDelete }) => {
           onDelete={onDelete}
           onMove={onMove}
           onRename={onRename}
+          onPreview={onPreview}
         />
       </div>
     </div>
