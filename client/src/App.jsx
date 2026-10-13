@@ -17,12 +17,14 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<Login mode="login" />} />
         <Route path="/register" element={<Login mode="register" />} />
+         <Route path="/s/:token" element={<ShareWithMe/>}/>
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             <Route path='/' element={<Dashboard/>}/>
             <Route path="/drive" element={<Drive />} />
             <Route path="/drive/:folderId" element={<Drive />} />
             <Route path='/shared' element={<ShareFile/>}/>
+            <Route path="/trash" element={<Trash/>}/>
           </Route>
         </Route>
         <Route path="*" element={<Navigate />} />
