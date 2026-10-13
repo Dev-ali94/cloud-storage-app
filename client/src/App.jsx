@@ -22,6 +22,7 @@ const App = () => {
             <Route path='/' element={<Dashboard/>}/>
             <Route path="/drive" element={<Drive />} />
             <Route path="/drive/:folderId" element={<Drive />} />
+            <Route path='/shared' element={<ShareFile/>}/>
           </Route>
         </Route>
         <Route path="*" element={<Navigate />} />

@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import {useDrive} from "../hooks/useDrive"
 import FilePreview from '../components/file/FilePreview'
+import ShareModel from '../components/file/ShareModel'
 const Drive = () => {
   const navigate = useNavigate()
   const {folderId} = useParams()
@@ -24,8 +25,9 @@ useEffect(()=>{
   return (
     <div className="" >
       <BreadCrumb/>
-      <FileGrid onFolderClick={(folder)=> navigate(`/drive/${folder.id}`)} onPreviewFile={setPreviewFile} onShareItem={shareItem} onMoveItem={moveItem} onDeleteItem={deleteItem} onRenameItem={renameItem} />
+      <FileGrid onFolderClick={(folder)=> navigate(`/drive/${folder.id}`)} onPreviewFile={setPreviewFile} onShareItem={setShareItem} onMoveItem={moveItem} onDeleteItem={deleteItem} onRenameItem={renameItem} />
         {previewFile && <FilePreview file={previewFile} onClose={()=> setPreviewFile(null)}/>}
+        {shareItem && <ShareModel item={shareItem} onClose={()=>setShareItem(null)} isOpen={!!shareItem}/>}
     </div>
   )
 }
