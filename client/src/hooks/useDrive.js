@@ -51,16 +51,18 @@ export function useDrive() {
             api.post("/api/folders",{name,parent_id},"Folder Created","Error Creating Folder",()=>fetchDriveContent(parent_id))
         )
     }
-    const renameItems = (item,newName)=>{
-        const isFolder = isFolderItem(item)
-        const endPoint = isFolder ? "folders":"files"
-        const id = item.id || item
-        return runAction(
-            api.patch(`/api/${endPoint}/${id}/rename`,{name,newName}),
-            `${isFolder ? "folders":"files"} are renamed`,"Error renaming an item",
-            ()=>fetchDriveContent()
-        )
-    }
+   const renameItems = (item, newName) => {
+  const isFolder = isFolderItem(item)
+  const endPoint = isFolder ? "folders" : "files"
+  const id = item.id || item
+
+  return runAction(
+    api.patch(`/api/${endPoint}/${id}/rename`, { name:newName }),
+    `${isFolder ? "folders" : "files"} are renamed`,
+    "Error renaming an item",
+    () => fetchDriveContent()
+  )
+}
     const moveItem = (item,targetFolderId)=>{
         const isFolder = isFolderItem(item)
         const endPoint = isFolder ? "folders":"files"
@@ -73,7 +75,7 @@ export function useDrive() {
         )
 
     }
-    const deleteItem = (item)=>{
+    const removeDriveItem = (item)=>{
         const isFolder = isFolderItem(item)
         const endPoint = isFolder ? "folders":"files"
         const id = item.id || item
@@ -108,7 +110,7 @@ export function useDrive() {
         moveItem,
         renameItems,
         restoreItem,
-        deleteItem,
+       removeDriveItem,
         permenantDeleteItem,
         isUploading,
         uploadProgress
