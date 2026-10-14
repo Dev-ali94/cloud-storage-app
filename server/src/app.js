@@ -1,11 +1,24 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from "cors"
+import cookieParser from "cookie-parser"
+import { initDb } from './config/db.js';
 
 dotenv.config();
 const app = express();
 
-app.get('/', (req, res) => {
-  res.send('This server is now live and running!');
-});
+const allowedOrigins = process.env.ORIGIN.split(",")
+app.use(cors({origin:allowedOrigins,credentials:true}))
+app.use(cookieParser())
+app.use(express.json({limit:"100mb"}))
+
+app.use((err,_req,res,_next)=>{
+  res.status(err.status || 500).json({error:err.message || "Some thing went wrong"})
+})
+initDb().then(()=>{
+  app.get('/', (req, res) => {
+    res.send('This server is now live and running!');
+  });
+})
 
 export default app
