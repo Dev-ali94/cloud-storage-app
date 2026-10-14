@@ -5,6 +5,7 @@ import { HardDriveUploadIcon, PlusIcon, FolderPlusIcon } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { useDrive } from "../hooks/useDrive"
+import CreateFolder from "../components/folder/CreateFolder";
 
 
 const Dashboard = () => {
@@ -168,7 +169,7 @@ const Dashboard = () => {
           Your recently uploaded files will appear here.
         </p>
       </div>
-
+ <CreateFolder isOpen={isCreateFolderOpen} onClose={()=>setIsCreateFolderOpen(false)}/>
     </div>
   );
 };

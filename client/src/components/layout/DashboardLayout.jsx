@@ -5,8 +5,6 @@ import Header from "../Header";
 
 const DashboardLayout = () => {
     const [isMobileOpen,setIsMobileOpen] = useState(false)
-    
-   
   return (
     <div className="min-h-screen flex flex-col text-zinc-100">
       {/* Sidebar */}
@@ -19,6 +17,7 @@ const DashboardLayout = () => {
           <Outlet />
         </main>
       </div>
+     
     </div>
   );
 };

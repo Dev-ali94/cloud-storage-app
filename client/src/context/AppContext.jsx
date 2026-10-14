@@ -8,7 +8,7 @@ const ROOT_BREADCRUMB = [{ id: null, name: "My Drive" }]
 const errorMsg = (err, fallBack) => err.response?.data?.msg || fallBack || "Something went wrong"
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [currentFolderId, setCurrentFolderId] = useState(null)
