@@ -30,25 +30,25 @@ const Login = ({mode="login"}) => {
 };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row text-zinc-100">
-      <div className="md:w-1/2 p-8 md:p-12 lg:p-16 bg-zinc-900 border-b md:border-b-0 md:border-r border-zinc-800 flex flex-col justify-between">
+    <div className="min-h-screen flex flex-col md:flex-row">
+      <div className="md:w-1/2 p-8 md:p-12 lg:p-16 rounded-r-4xl  bg-zinc-900 border-b md:border-b-0 md:border-r border-zinc-800 flex flex-col justify-between">
        <div className="flex items-center justify-start gap-2">
-         <CloudUploadIcon className="w-9 h-9 text-purple-500"/>
-        <h1 className="text-xl font-logo font-medium uppercase">Cloudee</h1>
+         <CloudUploadIcon className="w-9 h-9 text-purple-600"/>
+        <h1 className="text-xl text-zinc-100 font-logo font-medium uppercase">Cloudee</h1>
 
        </div>
         <div className="my-12 space-y-3">
-        <h2 className="text-3xl md:text-3xl lg:text-4xl tracking-tight leading-tight">Secure,Simple & Fast <br/><span className="text-purple-500">Clouade Storage</span></h2>
+        <h2 className="text-3xl text-zinc-300 md:text-3xl lg:text-4xl tracking-tight leading-tight">Secure,Simple & Fast <br/><span className="text-purple-500 font-medium">Clouade Storage</span></h2>
         <p className="text-sm md:text-base max-w-md leading-relaxed text-zinc-400">Store your files securely in your cloud, organize with folders, share with others and access them from anywhere.</p>
         </div> 
         <div className="text-sm text-zinc-300">© 2023 Cloudee. All rights reserved.</div>
       </div>
 
-       <div className="md:w-1/2 p-8 md:p-12 lg:p-6 flex items-center justify-center">
+       <div className="md:w-1/2 p-8 md:p-12 lg:p-6  flex items-center justify-center">
        <div className="w-full max-w-md space-y-6 animate-fade-in">
         <div>
-          <h3 className="text-2xl font-medium text-zinc-100">{isRegister ? "Create an account" : "Welcome back"}</h3>
-          <p className="text-sm text-zinc-400 mt-1">{isRegister ? "Join us today and start storing your files securely in the cloud." : "Sign in to access your account and continue where you left off."}</p>
+          <h3 className="text-2xl font-semibold uppercase text-zinc-100">{isRegister ? "Create an account" : "Welcome back"}</h3>
+          <p className="text-sm font-medium text-zinc-400 mt-1">{isRegister ? "Join us today and start storing your files securely in the cloud." : "Sign in to access your account and continue where you left off."}</p>
         </div>
         <form className="space-y-4" action="">
           {isRegister && (

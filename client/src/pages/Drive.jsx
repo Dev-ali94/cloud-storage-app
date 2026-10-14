@@ -1,4 +1,4 @@
-import React,{useEffect, useState} from 'react'
+import React,{useEffect, useRef, useState} from 'react'
 import BreadCrumb from '../components/layout/BreadCrumb'
 import FileGrid from '../components/file/FileGrid'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -9,10 +9,13 @@ import ShareModel from '../components/file/ShareModel'
 import RenameModel from "../components/file/RenameModel"
 import MoveModel from '../components/file/MoveModel'
 import {ConfirmDialog} from "../components/ui/ConfirmDialog"
+
 const Drive = () => {
+   
   const navigate = useNavigate()
   const {folderId} = useParams()
   const {fetchDriveContent,setCurrentFolderId} = useApp()
+  
   const {removeDriveItem} = useDrive()
   const [previewFile,setPreviewFile] = useState(null)
   const [shareItem,setShareItem] = useState(null)
@@ -31,7 +34,7 @@ const handelConformDelete = async () => {
   setDeleteItem(null)
 }
   return (
-    <div className="" >
+    <div>
       <BreadCrumb/>
       <FileGrid onFolderClick={(folder)=> navigate(`/drive/${folder.id}`)} onPreviewFile={setPreviewFile} onShareItem={setShareItem} onMoveItem={setMoveItem} onDeleteItem={setDeleteItem} onRenameItem={setRenameItem} />
         {previewFile && <FilePreview file={previewFile} onClose={()=> setPreviewFile(null)}/>}
@@ -39,6 +42,7 @@ const handelConformDelete = async () => {
         {renameItem && <RenameModel item={renameItem} onClose={()=>setRenameItem(null)} isOpen={!!renameItem}/>}
         {moveItem && <MoveModel item={moveItem} onClose={()=>setMoveItem(null)} isOpen={!!moveItem}/>}
         {deleteItem && <ConfirmDialog isOpen={!!deleteItem} onClose={()=>setDeleteItem(null)} onConfirm={handelConformDelete} title={`Move ${deleteItem.name} to trash`} message='You can restore this item any time from the trash' confirmText='Move to Trash'/>}
+        
     </div>
   )
 }
