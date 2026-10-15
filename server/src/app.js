@@ -7,6 +7,8 @@ import authRoute from './routes/authRoutes.js';
 import folderRoute from './routes/folderRoutes.js';
 import fileRoute from './routes/fileRoutes.js';
 import { protect } from './middlewares/auth.js';
+import trashRoute from './routes/trashRoute.js';
+import shareRoute from './routes/shareRoutes.js';
 dotenv.config();
 const app = express();
 
@@ -21,6 +23,8 @@ app.use((err,_req,res,_next)=>{
 app.use("/api/auth",authRoute)
 app.use("/api/folders",protect,folderRoute)
 app.use("/api/files",protect,fileRoute)
+app.use("/api/trash",protect,trashRoute)
+app.use("/api/share",shareRoute)
 initDb().then(()=>{
   app.get('/', (req, res) => {
     res.send('This server is now live and running!');
