@@ -4,12 +4,12 @@ import { createFolder, getFolderDetails, getFolders, moveFolder, permanentDelete
 
 const folderRoute = express.Router()
 
-folderRoute.post("/create",protect,createFolder)
-folderRoute.get("/",protect,getFolders)
-folderRoute.get("/:id",protect,getFolderDetails)
-folderRoute.patch("/:id/rename",protect,renameFolder)
-folderRoute.patch("/:id/move",protect,moveFolder)
-folderRoute.delete("/:id",protect,softDeleteFolder)
-folderRoute.post("/:id/restore",protect,restoreFolder)
-folderRoute.delete("/:id/delete",protect,permanentDeleteFolder)
+folderRoute.post("/create",createFolder)
+folderRoute.get("/",getFolders)
+folderRoute.get("/:id",getFolderDetails)
+folderRoute.patch("/:id/rename",renameFolder)
+folderRoute.patch("/:id/move",moveFolder)
+folderRoute.delete("/:id",softDeleteFolder)
+folderRoute.post("/:id/restore",restoreFolder)
+folderRoute.delete("/:id/delete",permanentDeleteFolder)
 export default folderRoute

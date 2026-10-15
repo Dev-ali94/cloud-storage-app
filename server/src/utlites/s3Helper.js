@@ -1,19 +1,19 @@
-import {  DeleteObjectCommand, GetObjectCommand, ListObjectVersionsCommand, PutObjectAclCommand } from "@aws-sdk/client-s3"
+import {  DeleteObjectsCommand, GetObjectCommand, ListObjectVersionsCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner"
 import {Bucket_Name, client} from "../config/s3.js"
-export const uploadToStorage = async (fileBuffer,key,mimeType) => {
-    const command = PutObjectAclCommand({
+export const uploadToStorage = async (fileBuffer,key,mimetype) => {
+    const command = new  PutObjectCommand({
         Bucket:Bucket_Name,
         Key:key,
         Body:fileBuffer,
-        ContentType:mimeType
+        ContentType:mimetype
     })
     await client.send(command)
     return {s3Key:key}
 }
 
 export const getSignedFileUrl = async (key) => {
-     const command = GetObjectCommand({
+     const command = new GetObjectCommand({
         Bucket:Bucket_Name,
         Key:key,
     })
@@ -51,7 +51,7 @@ export const deleteFromStorage = async (key) => {
             );
         } else {
             await client.send(
-                new DeleteObjectCommand({
+                new DeleteObjectsCommand({
                     Bucket: Bucket_Name,
                     Key: key,
                 })
@@ -66,7 +66,7 @@ export const deleteFromStorage = async (key) => {
         // Fallback: delete the current object version.
         try {
             await client.send(
-                new DeleteObjectCommand({
+                new DeleteObjectsCommand({
                     Bucket: Bucket_Name,
                     Key: key,
                 })

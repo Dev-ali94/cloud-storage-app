@@ -1,5 +1,5 @@
 import {sql} from "../config/db.js"
-import { deleteMultipleFromStorage } from "../utlites/s3Helper.js"
+import { deleteFromStorage, deleteMultipleFromStorage } from "../utlites/s3Helper.js"
 
 export const getFolderHieryarchyIds = async (folderId,ownerId) => {
     const descendants = await sql ` SELECT id FROM folders WHERE ${folderId} = ANY(path::text[]) AND owner_id = ${ownerId}`
@@ -89,7 +89,7 @@ export const restoreFolderHieryarchy = async (folderId, ownerId) => {
 };
 
 export const adjustUserStorage = async (userId,deltaBytes) => {
-    const [user] = await sql `UPDATE users SET storage_used = GREATEST(0,storage_used + ${deltaBytes}) updated_at = NOW() WHERE id = ${userId} RETURNING storage_used`
+    const [user] = await sql `UPDATE users SET storage_used = GREATEST(0,storage_used + ${deltaBytes}),updated_at = NOW() WHERE id = ${userId} RETURNING storage_used`
     return user ? Number(user.storage_used) : null
 }
 
@@ -146,3 +146,29 @@ export const permanentDeleteFolderHieryarchy = async (folderId, ownerId) => {
         await adjustUserStorage(ownerId, -totalFreedSize);
     }
 };
+
+export const permanentDeleteFileRecorde = async (file,ownerId) => {
+  await Promise.all([deleteFromStorage(file.s3_key),cleanUpShareLinks([file.id],[]),
+    sql ` DELETE FROM files WHERE id = ${file.id}`])
+    await adjustUserStorage(ownerId,-Number(file.size))
+}
+
+export const emptyTrashHieryarchy = async (ownerId) => {
+  const [trashFile,trashFolder] = await Promise.all([
+    sql `SELECT id,s3_key,size FROM files WHERE owner_id = ${ownerId} AND is_trashed = true`,
+     sql `SELECT id FROM folders WHERE owner_id = ${ownerId} AND is_trashed = true`
+  ])
+  const s3Key = trashFile.map((f)=>f.s3_key)
+  const totalFreedFiles = trashFile.reduce((acc,f)=> acc + Number(f.size),0)
+  const trashedFileIds = trashFile.map((f=>f.id))
+  const trashedFolderIds = trashFolder.map((f)=>f.id)
+  await Promise.all([
+    s3Key.length > 0 ? deleteFromStorage(s3Key): Promise.resolve(),
+    cleanUpShareLinks(trashedFileIds,trashedFolderIds),
+    sql`DELETE FROM files WHERE owner_id = ${ownerId} AND is_trashed = true`,
+    sql`DELETE FROM folders WHERE owner_id = ${ownerId} AND is_trashed = true`
+  ])
+  if (totalFreedFiles > 0) {
+    await adjustUserStorage(ownerId,-totalFreedFiles)
+  }
+ }
