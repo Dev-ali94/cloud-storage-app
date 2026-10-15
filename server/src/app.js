@@ -4,6 +4,7 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import { initDb } from './config/db.js';
 import authRoute from './routes/authRoutes.js';
+import folderRoute from './routes/folderRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -17,6 +18,7 @@ app.use((err,_req,res,_next)=>{
   res.status(err.status || 500).json({error:err.message || "Some thing went wrong"})
 })
 app.use("/api/auth",authRoute)
+app.use("/api/folders",folderRoute)
 initDb().then(()=>{
   app.get('/', (req, res) => {
     res.send('This server is now live and running!');
