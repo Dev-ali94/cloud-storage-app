@@ -93,21 +93,56 @@ export const adjustUserStorage = async (userId,deltaBytes) => {
     return user ? Number(user.storage_used) : null
 }
 
-export const permanentDeleteFolderHieryarchy = async (folderId,ownerId) => {
-    const allFolderIds = await getFolderHieryarchyIds(folderId,ownerId)
-    const files = await sql `SELECT id s3_key,size FROM files WHERE folder_id = ANY(${allFolderIds}::uuid[]) AND owner_id = ${ownerId}`
-    const s3Key = files.map((f)=>f.s3_key)
-    const filesIds = files.map((f)=>f.id)
-    const totalFreesSize = files.reduce((acc,f)=> acc + Number(f.size),0)
-    await Promise.all(
-        s3Key.length > 0 ? deleteMultipleFromStorage(s3Key) : Promise.resolve(),
-        cleanUpShareLinks(filesIds,allFolderIds),
-        filesIds.length >0 ? sql `DELETE FROM files WHERE id = ANY(${filesIds}::uuid[])` : Promise.resolve(),
-        sql `DELETE FROM folders WHERE  id = ANY(${allFolderIds}::uuid[])`
-    )
-    if (totalFreesSize > 0) {
-         await adjustUserStorage(ownerId,-totalFreesSize)
-    }
-    await deleteMultipleFromStorage()
 
-}
+export const permanentDeleteFolderHieryarchy = async (folderId, ownerId) => {
+    const allFolderIds = await getFolderHieryarchyIds(folderId, ownerId);
+
+    if (!allFolderIds || allFolderIds.length === 0) {
+        throw new Error("Folder hierarchy not found");
+    }
+
+    const files = await sql`
+        SELECT id, s3_key, size
+        FROM files
+        WHERE folder_id = ANY(${allFolderIds}::uuid[])
+          AND owner_id = ${ownerId}
+    `;
+
+    const s3Keys = files
+        .map((file) => file.s3_key)
+        .filter(Boolean);
+
+    const filesIds = files.map((file) => file.id);
+
+    const totalFreedSize = files.reduce(
+        (total, file) => total + Number(file.size || 0),
+        0
+    );
+
+    // Delete storage objects first. If this fails, retain the DB records.
+    await deleteMultipleFromStorage(s3Keys);
+
+    // Clean up related share links.
+    await cleanUpShareLinks(filesIds, allFolderIds);
+
+    // Delete file records.
+    if (filesIds.length > 0) {
+        await sql`
+            DELETE FROM files
+            WHERE id = ANY(${filesIds}::uuid[])
+              AND owner_id = ${ownerId}
+        `;
+    }
+
+    // Delete folders, children included.
+    await sql`
+        DELETE FROM folders
+        WHERE id = ANY(${allFolderIds}::uuid[])
+          AND owner_id = ${ownerId}
+    `;
+
+    // Update the user's storage usage.
+    if (totalFreedSize > 0) {
+        await adjustUserStorage(ownerId, -totalFreedSize);
+    }
+};

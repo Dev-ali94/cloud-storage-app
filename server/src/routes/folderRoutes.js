@@ -11,5 +11,5 @@ folderRoute.patch("/:id/rename",protect,renameFolder)
 folderRoute.patch("/:id/move",protect,moveFolder)
 folderRoute.delete("/:id",protect,softDeleteFolder)
 folderRoute.post("/:id/restore",protect,restoreFolder)
-folderRoute.delete("/:id/delete",permanentDeleteFolder)
+folderRoute.delete("/:id/delete",protect,permanentDeleteFolder)
 export default folderRoute

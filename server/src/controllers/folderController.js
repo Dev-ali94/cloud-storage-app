@@ -143,15 +143,39 @@ try {
 }
 }
 
+
 export const permanentDeleteFolder = async (req, res) => {
-try {
-    const [folder] = await sql `SELECT id FROM folders WHERE id = ${req.params.id} AND owner_id = ${req.user.id} AND is_trashed = true`
-    if (!folder) {
-        return res.status(201).json({error:"Folder not Found in trash"})
+    try {
+        const folderId = req.params.id;
+        const ownerId = req.user.id;
+
+        const [folder] = await sql`
+            SELECT id
+            FROM folders
+            WHERE id = ${folderId}
+              AND owner_id = ${ownerId}
+              AND is_trashed = true
+        `;
+
+        if (!folder) {
+            return res.status(404).json({
+                error: "Folder not found in trash",
+            });
+        }
+
+        await permanentDeleteFolderHieryarchy(
+            folder.id,
+            ownerId
+        );
+
+        return res.status(200).json({
+            message: "Folder permanently deleted from trash",
+        });
+    } catch (error) {
+        console.error("Permanent folder deletion error:", error);
+
+        return res.status(500).json({
+            error: error.message || "Failed to permanently delete folder",
+        });
     }
-    await permanentDeleteFolderHieryarchy(folder.id,req.user.id)
-    return res.status(201).json({message:"Folder permanent delete from trash"})
-} catch (error) {
-    return res.status(500).json({error:error.message})
-}
-}
+};
