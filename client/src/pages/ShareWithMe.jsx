@@ -13,7 +13,7 @@ const ShareWithMe = () => {
   const [isLoading, setIsLoading] = useState(false)
   useEffect(() => {
     setIsLoading(true)
-    api.get(`/api/shares/access/${token}`).then((res) => {
+    api.get(`/api/share/access/${token}`).then((res) => {
       setData(res.data)
     }).catch((error) => {
       setError(error.response?.data?.error || "Unable to load share Item")

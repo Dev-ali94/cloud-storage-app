@@ -1,5 +1,8 @@
 import { sql } from "../config/db.js"
 import {emptyTrashHieryarchy} from "../services/storageServices.js"
+
+
+
 export const getTrashItems = async (req,res) => {
     try {
         const [files,folders] = await Promise.all([
@@ -13,6 +16,7 @@ export const getTrashItems = async (req,res) => {
 }
 
 export const emptyTrash = async (req,res) => {
+
     try {
         await emptyTrashHieryarchy(req.user.id)
         return res.status(201).json({message:"Trash Empty SuccessFully"})
@@ -20,3 +24,6 @@ export const emptyTrash = async (req,res) => {
         return res.status(500).json({error:error.message})
     }
 } 
+
+
+

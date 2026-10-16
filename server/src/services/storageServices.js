@@ -153,10 +153,7 @@ export const permanentDeleteFileRecorde = async (file,ownerId) => {
     await adjustUserStorage(ownerId,-Number(file.size))
 }
 
-
-
- 
-export const emptyTrashHieryarchy = async (ownerId) => {
+ export const emptyTrashHieryarchy = async (ownerId) => {
     const [trashFile, trashFolder] = await Promise.all([
         sql`
             SELECT id, s3_key, size
@@ -214,4 +211,6 @@ export const emptyTrashHieryarchy = async (ownerId) => {
         freedBytes: totalFreedFiles
     };
 };
+
+
 

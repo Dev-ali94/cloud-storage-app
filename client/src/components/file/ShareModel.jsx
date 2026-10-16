@@ -15,7 +15,7 @@ const ShareModel = ({item,isOpen,onClose}) => {
      if(!item) return
      setisLoading(true)
      try {
-      const {data} = await api.post("/api/shares",{resource_type:item.item_type === "folder" ? "folder" : "file",resource_id:item.id,permission:"download"})
+      const {data} = await api.post("/api/share/create",{resource_type:item.item_type === "folder" ? "folder" : "file",resource_id:item.id,permission:"download"})
       const link = data.share_link
       if (link?.token) {
         const fullUrl = `${window.location.origin}/s/${link.token}`

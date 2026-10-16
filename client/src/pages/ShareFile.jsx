@@ -16,9 +16,9 @@ const ShareFile = () => {
   const fetchShare = async () => {
     setIsloading(true)
     try {
-      const { data } = await api.get("/api/shares")
+      const { data } = await api.get("/api/share")
       setShares(data.share_links || [])
-
+      
     } catch (error) {
       toast.error('Error while fetching shares')
     } finally {
@@ -37,7 +37,7 @@ const ShareFile = () => {
     if (!deletingShare) return
     setisDeleting(true)
     try {
-      await api.post(`/api/shares/${deletingShare.id}`)
+      await api.delete(`/api/share/${deletingShare.id}`)
       toast.success("Share link deleted")
       setShares((prev) => prev.filter((s) => s.id !== deletingShare.id))
       setDeletingShare(null)

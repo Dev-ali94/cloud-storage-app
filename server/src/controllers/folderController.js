@@ -52,7 +52,7 @@ export const getFolderDetails = async (req, res) => {
             ...ancestorIds.map((aid) => ({ id: aid, name: ancestorMap.get(aid) ?? "" })),
             { id: folder.id, name: folder.name }
         ]
-        return res.status(201).json({ folder, breadcrumbs })
+        return res.status(201).json({ folder,breadcrumb:breadcrumbs })
     } catch (error) {
         return res.status(500).json({ error: error.message })
     }

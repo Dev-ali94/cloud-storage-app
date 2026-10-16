@@ -55,7 +55,7 @@ const Trash = () => {
   const handleEmptyTrash = async (params) => {
     setIsEmptying(true)
     try {
-      await api.post("/api/trash/empty")
+      await api.delete("/api/trash/empty")
       toast.success("Trash Empty")
       setTrash({files:[],folders:[]})
       await refreshUser()

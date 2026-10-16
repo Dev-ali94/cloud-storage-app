@@ -20,8 +20,8 @@ const App = () => {
          <Route path="/s/:token" element={<ShareWithMe/>}/>
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
-            <Route path="/drive" element={<Drive />} />
-            <Route path="/drive/:folderId" element={<Drive />} />
+            <Route path="/" element={<Drive />} />
+            <Route path="/:folderId" element={<Drive />} />
             <Route path='/shared' element={<ShareFile/>}/>
             <Route path="/trash" element={<Trash/>}/>
           </Route>

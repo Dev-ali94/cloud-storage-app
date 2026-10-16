@@ -78,13 +78,13 @@ export const AppProvider = ({ children }) => {
       const parentParams = folderId || "null";
 
       const [folderRes, fileRes, detailRes] = await Promise.all([
-        api.get("/api/folders", {
+        api.get("/api/folders/", {
           params: {
             parent_id: parentParams,
           },
         }),
 
-        api.get("/api/files", {
+        api.get("/api/files/", {
           params: {
             folder_id: parentParams,
             search,

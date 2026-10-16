@@ -34,36 +34,65 @@ export function useDrive() {
     return false;
   }
 };
-    const uploadFiles = async (fileList, folder_id = currentFolderId) => {
-        if (!fileList.lenght) return
-        setIsUploading(true)
-        setUploadProgress(0)
-        const totalSize = Array.from(fileList).reduce((acc, f) => acc + (f.size || 0), 0)
-        const step = 92 / Math.max(12, totalSize / 409715.2)
-        const interval = setInterval(() => {
-            setUploadProgress((p) => p >= 92 ? p : Math.min(92, p + step))
-        }, 100)
-        const formData = new FormData
-        Array.from(fileList).forEach((f) => formData.append("files", f))
-        if (folder_id) formData.append("folder_id", folder_id)
-        try {
-            const { data } = await api.post("/api/files/upload", formData, { headers: { "Content-Type": "multipart/formData" } })
-            clearInterval(interval)
-            setUploadProgress(100)
-            await new Promise((r) => setTimeout(r, 300))
-            toast.success(`${data?.files.lenght} are uploaded`)
-            await fetchDriveContent(folder_id)
-            await refreshUser()
-        } catch (error) {
-            clearInterval(interval)
-            toast.error(error.response?.data?.error || errorMsg)
-        } finally {
-            clearInterval(interval)
-            isUploading(false)
-            uploadProgress(0)
-        }
+    const uploadFiles = async (fileList, folder_id = null) => {
+    if (!fileList?.length) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const totalSize = Array.from(fileList).reduce(
+        (acc, file) => acc + (file.size || 0),
+        0
+    );
+
+    const step = 92 / Math.max(12, totalSize / 409715.2);
+
+    const interval = setInterval(() => {
+        setUploadProgress((progress) =>
+            progress >= 92 ? progress : Math.min(92, progress + step)
+        );
+    }, 100);
+
+    const formData = new FormData();
+
+    Array.from(fileList).forEach((file) => {
+        formData.append("files", file);
+    });
+
+    if (folder_id) {
+        formData.append("folder_id", folder_id);
     }
 
+    try {
+        const { data } = await api.post(
+            "/api/files/upload",
+            formData
+        );
+
+        setUploadProgress(100);
+
+        toast.success(
+            `${data?.files?.length ?? 0} file(s) uploaded successfully`
+        );
+
+        await fetchDriveContent(folder_id);
+        await refreshUser();
+
+    } catch (error) {
+        console.error("File upload error:", error.response?.data || error);
+
+        toast.error(
+            error.response?.data?.error ||
+            error.message ||
+            "File upload failed"
+        );
+
+    } finally {
+        clearInterval(interval);
+        setIsUploading(false);
+        setUploadProgress(0);
+    }
+};
     const renameItems = (item, newName) => {
         const isFolder = isFolderItem(item)
         const endPoint = isFolder ? "folders" : "files"
@@ -78,7 +107,7 @@ export function useDrive() {
     }
     const createFolder = async (name, parent_id = currentFolderId) => {
         return runAction(
-            () => api.post("/api/folders", {
+            () => api.post("/api/folders/create", {
                 name: name.trim(),
                 parent_id: parent_id ?? null,
             }),
@@ -114,7 +143,7 @@ export function useDrive() {
         const endPoint = isFolderItem(item) ? "folders" : "files"
         const id = item.id || item
         return runAction(
-            api.delete(`/api/${endPoint}/${id}/restore`),
+            api.post(`/api/${endPoint}/${id}/restore`),
             "item are restore ", "Error restore an item",
             () => fetchDriveContent()
         )
@@ -123,7 +152,7 @@ export function useDrive() {
         const endPoint = isFolderItem(item) ? "folders" : "files"
         const id = item.id || item
         return runAction(
-            api.delete(`/api/${endPoint}/${id}/permanent`),
+            api.delete(`/api/${endPoint}/${id}/delete`),
             "item permanent delete ", "Error deleting an item",
             () => refreshUser()
         )

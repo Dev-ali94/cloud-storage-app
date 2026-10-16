@@ -8,6 +8,7 @@ import { useDrive } from "../../hooks/useDrive";
 
 const BreadCrumb = () => {
   const { breadcrumb } = useApp();
+  const currentFolderId = breadcrumb[breadcrumb.length - 1]?.id ?? null;
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const { isUploading, uploadFiles } = useDrive()
   const fileRef = useRef();
