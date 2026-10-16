@@ -1,8 +1,8 @@
+import {getSignedFileUrl}from "../utlites/s3Helper.js"
 import {sql} from "../config/db.js"
 import crypto from "crypto"
-import {getSignedFileUrl}from "../utlites/s3Helper.js"
 
-
+// create share link
 export const createShareLink = async (req,res) => {
     try {
         const resourceType = req.body.resource_type ?? req.body.resourceType
@@ -16,7 +16,7 @@ export const createShareLink = async (req,res) => {
         SELECT id FROM files WHERE id = ${resourceId} AND owner_id = ${req.user.id} AND is_trashed = false`
         : await sql`SELECT id FROM folders WHERE id = ${resourceId} AND owner_id = ${req.user.id} AND is_trashed = false`
         if (!resource) {
-            return res.status(401).json({error:"Resource not found"})
+            return res.status(404).json({error:"resource not found"})
         }
         const [existing] = await sql `SELECT * FROM share_links WHERE resource_id = ${resource.id} AND owner_id = ${req.user.id}`
         if (existing && existing.expires_at && new Date() > new Date(existing.expires_at)) {
@@ -29,11 +29,10 @@ export const createShareLink = async (req,res) => {
         VALUES(${token},${resourceType},${resource.id},${req.user.id},${permission},${targetExpireAt ? new Date(targetExpireAt):null})`
         return res.status(201).json({share_link:shareLink,is_existing:false})
     } catch (error) {
-        return res.status(500).json({error:error.message})
+        return res.status(500).json({error:error.message || "Internal Server Error From Create Share Link"})
     }
 }
-
-
+// fetch share link
 export const getUsetShareLink = async (req, res) => {
   try {
     const activeShareLink = await sql`
@@ -89,38 +88,34 @@ export const getUsetShareLink = async (req, res) => {
       ORDER BY sl.created_at DESC
     `;
 
-    return res.status(200).json({
-      share_links: activeShareLink
-    });
+    return res.status(200).json({share_links: activeShareLink});
 
   } catch (error) {
-    return res.status(500).json({
-      error: error.message
-    });
+    return res.status(500).json({error: error.message || "Internal Server Error FROM Get Share Link"});
   }
 };
-
+// access share link (public api)
 export const accessShareLink = async (req,res) => {
     try {
         const {token} = req.params 
         if (!token) {
-            return res.status(401).json({error:"Token not found"})
+            return res.status(404).json({error:"token not found"})
         }
          const [shareLink] = await sql `SELECT * FROM share_links WHERE token = ${token}`
          if (shareLink.expires_at && new Date() > new Date(shareLink.expires_at)) {
-            return res.status(401).json({error:"Share Link have been expire"})
+            return res.status(401).json({error:"share link have been expire"})
          }
          await sql `UPDATE share_links SET access_count = access_count + 1 WHERE id = ${shareLink.id}`
          const [owner] = await sql `SELECT id,name,email FROM users WHERE id = ${shareLink.owner_id}`
          if (shareLink.resource_type === "file") {
             const [file] = await sql `SELECT * FROM files WHERE id = ${shareLink.resource_id}`
             if (!file || file.is_trashed) {
-                return res.status(401).json({error:"File no longer exist"})
+                return res.status(401).json({error:"file no longer exist"})
             }
             if (file.folder_id) {
                 const [parentFolder] = await sql `SELECT is_trashed FROM folders WHERE id = ${file.folder_id}`
                 if (!parentFolder|| parentFolder.is_trashed) {
-                return res.status(401).json({error:"File no longer exist"})
+                return res.status(401).json({error:"file no longer exist"})
             }
             }
             const downloadUrl = await getSignedFileUrl(file.s3_key)
@@ -134,7 +129,7 @@ export const accessShareLink = async (req,res) => {
          }
          const [folder] = await sql ` SELECT * FROM folders WHERE id = ${shareLink.resource_id}`
          if (!folder || folder.is_trashed) {
-            return res.status(401).json({error:"Folder no longer exist"})
+            return res.status(401).json({error:"folder no longer exist"})
          }
          const [subFolders,files] = await Promise.all([
             sql `SELECT id,name,parent_id,created_at FROM folders WHERE parent_id = ${folder.id} AND is_trashed = false`,
@@ -155,18 +150,18 @@ export const accessShareLink = async (req,res) => {
                 owner
             })
     } catch (error) {
-        return res.status(500).json({error:error.message})
+        return res.status(500).json({error:error.message || "Internal Server Error From Access Share Link"})
     }
 }
-
+// delete share link
 export const deleteShareLink = async (req,res) => {
     try {
         const [shareLink] = await sql `DELETE FROM share_links WHERE id = ${req.params.id} AND owner_id = ${req.user.id} RETURNING id`
         if (!shareLink) {
-            return res.status(401).json({error:"Share link not found"})
+            return res.status(404).json({error:"share link not found"})
         }
-        return res.status(201).json({message:"Share link revoked successfully"})
+        return res.status(201).json({message:"share link are now revoke successfully"})
     } catch (error) {
-        return res.status(500).json({error:error.message})
+        return res.status(500).json({error:error.message || "Internal Server Error From Delete Share Link"})
     }
 }

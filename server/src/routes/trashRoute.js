@@ -1,5 +1,6 @@
-import express from "express"
 import { emptyTrash, getTrashItems } from "../controllers/trashController.js"
+import express from "express"
+
 const trashRoute = express.Router()
 
 trashRoute.get("/",getTrashItems)

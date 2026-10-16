@@ -2,6 +2,8 @@ import {sql} from "../config/db.js"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 
+
+// set cookie function
 export const sendTokenResponse = (res,userId,statusCode=200,extraData={})=>{
 const token = jwt.sign({id:userId},process.env.JWT_SECRET,{expiresIn:"7d"})
 const isProduction = process.env.NODE_ENV === "production"
@@ -11,18 +13,21 @@ res.cookie("token",token,{
     sameSite:isProduction ? "none":"lax",
     maxAge:7*24*60*60*1000
 })
+
+
 res.status(statusCode).json({token,...extraData})
 }
+// register function
 export const registerUser = async (req,res) => {
     try {
         const {name,email,password} = req.body
         if (!name || !email || !password) {
-            return res.status(400).json({error:"name,email and password are required"})
+            return res.status(401).json({error:"name ,email and password are required"})
         }
         const normalizedEmail = email.toLowerCase().trim()
         const [exisiting] = await sql`SELECT id FROM users WHERE email = ${normalizedEmail}`
         if (exisiting) {
-            return res.status(400).json({error:"User with this email also exist"})
+            return res.status(401).json({error:"user with that email also exist"})
         }
         const salt = await bcrypt.genSalt(10)
         console.log(salt);
@@ -33,13 +38,12 @@ export const registerUser = async (req,res) => {
         const [user] = await sql`INSERT INTO users (name,email,password,storage_limit) 
         VALUES (${name.trim()},${email.trim()},${hashPassword},${storageLimit})
         RETURNING id,name,email,storage_used,storage_limit,created_at,updated_at`
-
         return sendTokenResponse(res,user.id,201,{user})
     } catch (error) {
-        return res.status(500).json({error:error.message})
+        return res.status(500).json({error:error.message || "Internal server error from register user"})
     }
 }
-
+// login function
 export const loginUser = async (req,res) => {
        try {
         const {email,password} = req.body
@@ -49,7 +53,7 @@ export const loginUser = async (req,res) => {
         const normalizedEmail = email.toLowerCase().trim()
         const [user] = await sql`SELECT id,name,email,password,storage_used,storage_limit,created_at,updated_at FROM users WHERE email = ${normalizedEmail} `
         if (!user) {
-            return res.status(401).json({error:"User not found with thath email"})
+            return res.status(401).json({error:"user not found with that email"})
         }
        const isMatch = await bcrypt.compare(password,user.password)
        if (!isMatch) {
@@ -58,10 +62,10 @@ export const loginUser = async (req,res) => {
        delete user.password
         return sendTokenResponse(res,user.id,201,{user})
     } catch (error) {
-        return res.status(500).json({error:error.message})
+        return res.status(500).json({error:error.message || "Internal server error form login user"})
     }
 }
-
+// logout user
 export const logoutUser = async (req,res) => {
     try {
         const isProduction = process.env.NODE_ENV === "production"
@@ -70,16 +74,16 @@ export const logoutUser = async (req,res) => {
             secure:isProduction,
             sameSite:isProduction?"none":"lax"
         })
-        return res.status(201).json({message:"Logout SuccessFully"})
+        return res.status(201).json({message:"logout successfully"})
     } catch (error) {
-        return res.status(500).json({error:error.message})
+        return res.status(500).json({error:error.message || "Internal server error from logout user"})
     }
 }
-
+// fetch user data
 export const getUser = async (req,res) => {
     try {
         return res.status(201).json({user:req.user})
     } catch (error) {
-        return res.status(500).json({error:error.message})
+        return res.status(500).json({error:error.message || "Internal server error form fetch user data"})
     }
 }

@@ -11,7 +11,6 @@ export const uploadToStorage = async (fileBuffer, key, mimetype) => {
             ContentType: mimetype
         })
     );
-
     return { s3Key: key };
 };
 
@@ -23,10 +22,8 @@ export const getSignedFileUrl = async (key) => {
     return await getSignedUrl(client,command,{expiresIn:36000})
 }
 
-
 export const deleteFromStorage = async (key) => {
     if (!key || typeof key !== "string") return;
-
     try {
         const objects = [];
         let KeyMarker;
@@ -43,18 +40,12 @@ export const deleteFromStorage = async (key) => {
                 })
             );
 
-            const versions = [
-                ...(response.Versions || []),
-                ...(response.DeleteMarkers || []),
-            ];
+            const versions = [...(response.Versions || []),...(response.DeleteMarkers || [])]
 
             objects.push(
                 ...versions
-                    .filter((item) => item.Key === key)
-                    .map(({ Key, VersionId }) => ({
-                        Key,
-                        VersionId,
-                    }))
+                .filter((item) => item.Key === key)
+                .map(({ Key, VersionId }) => ({Key,VersionId}))
             );
 
             isTruncated = response.IsTruncated === true;
@@ -181,5 +172,7 @@ export const deleteMultipleFromStorage = async (keys = []) => {
         }
     }
 };
+
+
 
 

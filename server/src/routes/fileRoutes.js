@@ -1,7 +1,6 @@
-import express from "express"
 import { getFileOrPreviewUrl, getFiles, moveFile, permanentDeleteFile, renameFile, restoreFile, softDeleteFile, uploadFiles } from "../controllers/fileController.js"
 import { upload } from "../middlewares/upload.js"
-
+import express from "express"
 
 const fileRoute = express.Router()
 
@@ -13,4 +12,5 @@ fileRoute.patch("/:id/move",moveFile)
 fileRoute.delete("/:id",softDeleteFile)
 fileRoute.post("/:id/restore",restoreFile)
 fileRoute.delete("/:id/delete",permanentDeleteFile)
+
 export default fileRoute

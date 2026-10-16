@@ -1,6 +1,5 @@
-import express from "express"
-import { protect } from "../middlewares/auth.js"
 import { createFolder, getFolderDetails, getFolders, moveFolder, permanentDeleteFolder, renameFolder, restoreFolder, softDeleteFolder } from "../controllers/folderController.js"
+import express from "express"
 
 const folderRoute = express.Router()
 
@@ -12,4 +11,5 @@ folderRoute.patch("/:id/move",moveFolder)
 folderRoute.delete("/:id",softDeleteFolder)
 folderRoute.post("/:id/restore",restoreFolder)
 folderRoute.delete("/:id/delete",permanentDeleteFolder)
+
 export default folderRoute
