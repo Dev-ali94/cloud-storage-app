@@ -56,15 +56,16 @@ export const permanentDeleteFolderHieryarchy = async (folderId, ownerId) => {
         throw new Error("folder hierarchy not found");
     }
     const files = await sql`SELECT id, s3_key, size FROM files WHERE folder_id = ANY(${allFolderIds}::uuid[]) AND owner_id = ${ownerId}`
-    const s3Keys = files.map((file) => file.s3_key).filter(Boolean);
+    const s3Keys = files.map((file) => file.s3_key)
     const filesIds = files.map((file) => file.id);
     const totalFreedSize = files.reduce((total, file) => total + Number(file.size || 0),0)
-    await deleteMultipleFromStorage(s3Keys);
-    await cleanUpShareLinks(filesIds, allFolderIds);
-    if (filesIds.length > 0) {
-        await sql`DELETE FROM files WHERE id = ANY(${filesIds}::uuid[]) AND owner_id = ${ownerId}`
-    }
-    await sql`DELETE FROM folders WHERE id = ANY(${allFolderIds}::uuid[]) AND owner_id = ${ownerId}`
+    await Promise.all([
+        s3Keys.length > 0 ? deleteMultipleFromStorage(s3Keys) : Promise.resolve(),
+        cleanUpShareLinks(filesIds,allFolderIds),
+        filesIds.length > 0 ? sql`DELETE FROM files WHERE id = ANY(${filesIds}::uuid[])`:Promise.resolve(),
+        await sql`DELETE FROM folders WHERE id = ANY(${allFolderIds}::uuid[])`
+    ])
+   
     if (totalFreedSize > 0) {
         await adjustUserStorage(ownerId, -totalFreedSize);
     }
@@ -82,12 +83,13 @@ export const permanentDeleteFileRecorde = async (file,ownerId) => {
         sql`SELECT id FROM folders WHERE owner_id = ${ownerId} AND is_trashed = true`
     ]);
 
-    const s3Keys = trashFile.map((file) => file.s3_key).filter(Boolean);
+    const s3Keys = trashFile.map((file) => file.s3_key)
     const totalFreedFiles = trashFile.reduce((acc, file) => acc + Number(file.size || 0),0);
     const trashedFileIds = trashFile.map((file) => file.id);
     const trashedFolderIds = trashFolder.map((folder) => folder.id);
-    await deleteMultipleFromStorage(s3Keys);
+    
     await Promise.all([
+        s3Keys.length > 0 ? deleteMultipleFromStorage(s3Keys) : Promise.resolve(),
         cleanUpShareLinks(trashedFileIds, trashedFolderIds),
         sql`DELETE FROM files WHERE owner_id = ${ownerId} AND is_trashed = true`,
         sql`DELETE FROM folders WHERE owner_id = ${ownerId} AND is_trashed = true`
@@ -95,12 +97,9 @@ export const permanentDeleteFileRecorde = async (file,ownerId) => {
     if (totalFreedFiles > 0) {
         await adjustUserStorage(ownerId, -totalFreedFiles);
     }
-    return {
-        deletedFiles: trashFile.length,
-        deletedFolders: trashFolder.length,
-        freedBytes: totalFreedFiles
-    };
 };
+
+
 
 
 
