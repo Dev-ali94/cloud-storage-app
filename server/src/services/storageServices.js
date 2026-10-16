@@ -153,22 +153,65 @@ export const permanentDeleteFileRecorde = async (file,ownerId) => {
     await adjustUserStorage(ownerId,-Number(file.size))
 }
 
+
+
+ 
 export const emptyTrashHieryarchy = async (ownerId) => {
-  const [trashFile,trashFolder] = await Promise.all([
-    sql `SELECT id,s3_key,size FROM files WHERE owner_id = ${ownerId} AND is_trashed = true`,
-     sql `SELECT id FROM folders WHERE owner_id = ${ownerId} AND is_trashed = true`
-  ])
-  const s3Key = trashFile.map((f)=>f.s3_key)
-  const totalFreedFiles = trashFile.reduce((acc,f)=> acc + Number(f.size),0)
-  const trashedFileIds = trashFile.map((f=>f.id))
-  const trashedFolderIds = trashFolder.map((f)=>f.id)
-  await Promise.all([
-    s3Key.length > 0 ? deleteFromStorage(s3Key): Promise.resolve(),
-    cleanUpShareLinks(trashedFileIds,trashedFolderIds),
-    sql`DELETE FROM files WHERE owner_id = ${ownerId} AND is_trashed = true`,
-    sql`DELETE FROM folders WHERE owner_id = ${ownerId} AND is_trashed = true`
-  ])
-  if (totalFreedFiles > 0) {
-    await adjustUserStorage(ownerId,-totalFreedFiles)
-  }
- }
+    const [trashFile, trashFolder] = await Promise.all([
+        sql`
+            SELECT id, s3_key, size
+            FROM files
+            WHERE owner_id = ${ownerId}
+              AND is_trashed = true
+        `,
+        sql`
+            SELECT id
+            FROM folders
+            WHERE owner_id = ${ownerId}
+              AND is_trashed = true
+        `
+    ]);
+
+    const s3Keys = trashFile
+        .map((file) => file.s3_key)
+        .filter(Boolean);
+
+    const totalFreedFiles = trashFile.reduce(
+        (acc, file) => acc + Number(file.size || 0),
+        0
+    );
+
+    const trashedFileIds = trashFile.map((file) => file.id);
+    const trashedFolderIds = trashFolder.map((folder) => folder.id);
+
+    // Delete storage objects first. If this fails, retain the DB records.
+    await deleteMultipleFromStorage(s3Keys);
+
+    // Clean up database records and share links.
+    await Promise.all([
+        cleanUpShareLinks(trashedFileIds, trashedFolderIds),
+
+        sql`
+            DELETE FROM files
+            WHERE owner_id = ${ownerId}
+              AND is_trashed = true
+        `,
+
+        sql`
+            DELETE FROM folders
+            WHERE owner_id = ${ownerId}
+              AND is_trashed = true
+        `
+    ]);
+
+    if (totalFreedFiles > 0) {
+        await adjustUserStorage(ownerId, -totalFreedFiles);
+    }
+
+    return {
+        deletedFiles: trashFile.length,
+        deletedFolders: trashFolder.length,
+        freedBytes: totalFreedFiles
+    };
+};
+

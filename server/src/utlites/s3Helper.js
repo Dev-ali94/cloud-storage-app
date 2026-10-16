@@ -22,7 +22,6 @@ export const getSignedFileUrl = async (key) => {
 
 export const deleteFromStorage = async (key) => {
     if (!key) return;
-
     try {
         const { Versions = [], DeleteMarkers = [] } =
             await client.send(
@@ -45,7 +44,6 @@ export const deleteFromStorage = async (key) => {
                     Bucket: Bucket_Name,
                     Delete: {
                         Objects: objects,
-                        Quiet: true,
                     },
                 })
             );
@@ -82,10 +80,11 @@ export const deleteFromStorage = async (key) => {
     }
 };
 
-export const deleteMultipleFromStorage = async (keys = []) => {
-    if (!Array.isArray(keys) || keys.length === 0) return;
+export const deleteMultipleFromStorage = async (keys) => {
+    if (!keys?.length) return;
 
     await Promise.all(
-        keys.filter(Boolean).map((key) => deleteFromStorage(key))
+        keys.map(deleteFromStorage(keys))
     );
 };
+ 

@@ -2,6 +2,7 @@ import {sql} from "../config/db.js"
 import crypto from "crypto"
 import {getSignedFileUrl}from "../utlites/s3Helper.js"
 
+
 export const createShareLink = async (req,res) => {
     try {
         const resourceType = req.body.resource_type ?? req.body.resourceType
@@ -32,26 +33,72 @@ export const createShareLink = async (req,res) => {
     }
 }
 
-export const getUsetShareLink = async (req,res) => {
-    try {
-        const activeShareLink = await sql `SELECT sl.*,
-        CASE 
-            WHEN sl.resource_type = "file" THEN json_build_object('id',f.id,'name',f.name,'mime_type',f.mime_type,'size',f.size)
-             WHEN sl.resource_type = "folder" THEN json_build_object('id',fo.id,'name',fo.name)
-             END AS resource
-             FROM share_links sl
-             LEFT JOIN files f ON sl.resource_type = "file" AND f.id = sl.resource_id AND f.is_trashed = false
-             LEFT JOIN folders pf ON f.folder_id = pf.id
-             LEFT JOIN files fo ON sl.resource_type = "file" AND fo.id = sl.resource_id AND fo.is_trashed = false
-             WHERE sl.owner_id = ${req.user.id}
-             AND(sl.resource_type = "file" AND f.id IS NOT NULL AND(f.folder_id IS NULL OR pf.is_trashed = false))
-             OR(sl.resource_type = "folder" AND fo.id IS NOT NULL )
-             ORDER BY sl.created_at DESC `
-             return res.status(201).json({share_link:activeShareLink})
-    } catch (error) {
-        return res.status(500).json({error:error.message})
-    }
-}
+
+export const getUsetShareLink = async (req, res) => {
+  try {
+    const activeShareLink = await sql`
+      SELECT
+        sl.*,
+        CASE
+          WHEN sl.resource_type = 'file' THEN
+            json_build_object(
+              'id', f.id,
+              'name', f.name,
+              'mime_type', f.mime_type,
+              'size', f.size
+            )
+          WHEN sl.resource_type = 'folder' THEN
+            json_build_object(
+              'id', fo.id,
+              'name', fo.name
+            )
+        END AS resource
+
+      FROM share_links sl
+
+      LEFT JOIN files f
+        ON sl.resource_type = 'file'
+        AND f.id = sl.resource_id
+        AND f.is_trashed = false
+
+      LEFT JOIN folders pf
+        ON f.folder_id = pf.id
+
+      LEFT JOIN folders fo
+        ON sl.resource_type = 'folder'
+        AND fo.id = sl.resource_id
+        AND fo.is_trashed = false
+
+      WHERE sl.owner_id = ${req.user.id}
+        AND (
+          (
+            sl.resource_type = 'file'
+            AND f.id IS NOT NULL
+            AND (
+              f.folder_id IS NULL
+              OR pf.is_trashed = false
+            )
+          )
+          OR
+          (
+            sl.resource_type = 'folder'
+            AND fo.id IS NOT NULL
+          )
+        )
+
+      ORDER BY sl.created_at DESC
+    `;
+
+    return res.status(200).json({
+      share_links: activeShareLink
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message
+    });
+  }
+};
 
 export const accessShareLink = async (req,res) => {
     try {
@@ -76,7 +123,7 @@ export const accessShareLink = async (req,res) => {
                 return res.status(401).json({error:"File no longer exist"})
             }
             }
-            const downloadUrl = await getSignedFileUrl(file.e3_key)
+            const downloadUrl = await getSignedFileUrl(file.s3_key)
             return res.status(201).json({
                 resource_type:"file",
                 file,
@@ -85,7 +132,7 @@ export const accessShareLink = async (req,res) => {
                 owner
             })
          }
-         const [folder] = await sql ` SELECT folders WHERE id = ${shareLink.resource_id}`
+         const [folder] = await sql ` SELECT * FROM folders WHERE id = ${shareLink.resource_id}`
          if (!folder || folder.is_trashed) {
             return res.status(401).json({error:"Folder no longer exist"})
          }
